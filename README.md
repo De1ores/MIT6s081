@@ -15,10 +15,18 @@ sd
 
 
 git clone 
+git checkout -b branchname
 ..modify code and other
 git status
 git add .
 git commit -m "some comments"
 git push origin branchname 
 ..request merge
+
+#after merge
+git push -d origin branchname #delete branch
+
 git pull origin main
+
+
+git 
