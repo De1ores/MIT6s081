@@ -10,3 +10,15 @@
  make
 
 sd
+
+
+
+
+git clone 
+..modify code and other
+git status
+git add .
+git commit -m "some comments"
+git push origin branchname 
+..request merge
+git pull origin main
