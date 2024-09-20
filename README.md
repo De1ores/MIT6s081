@@ -8,3 +8,5 @@
  ./configure --disable-kvm --disable-werror --prefix=/usr/local --target-list="riscv64-softmmu"
  (如果缺包,放到gpt里面查询缺什么包之后安装)
  make
+
+sd
