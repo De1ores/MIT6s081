@@ -9,10 +9,6 @@
  (如果缺包,放到gpt里面查询缺什么包之后安装)
  make
 
-sd
-
-
-
 
 git clone 
 git checkout -b branchname
@@ -22,11 +18,27 @@ git add .
 git commit -m "some comments"
 git push origin branchname 
 ..request merge
-
 #after merge
 git push -d origin branchname #delete branch
-
 git pull origin main
 
+## labs1 website
+https://pdos.csail.mit.edu/6.828/2021/labs/util.html
 
-git 
+
+(1) need to configure the environment of qemu(see README.md of S0681)<br/>
+(2) git clone the source code of lab1(done)<br/>
+(3) make qemu and run xv6<br/>
+(4) supported command in xv6 <br/>
+> ls:list the command supported
+
+### task1:implent sleep 
+
+> Implement the UNIX program sleep for xv6; your sleep should pause for a user-specified number of ticks. A tick is a notion of time defined by the xv6 kernel, namely the time between two interrupts from the timer chip.
+Your solution should be in the file user/sleep.c.
+
+tips:<br/>
+(1)use command line to call the user application,the applicaiton uses the system call to implment the sleep function.
+
+
+
