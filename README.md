@@ -38,7 +38,53 @@ https://pdos.csail.mit.edu/6.828/2021/labs/util.html
 Your solution should be in the file user/sleep.c.
 
 tips:<br/>
-(1)use command line to call the user application,the applicaiton uses the system call to implment the sleep function.
+use command line to call the user application,the applicaiton uses the system call to implment the sleep function.<br/>
+
+(1)user/sleep.c , include user.h,which contains the system call that can be called.
+> types.h:define int,short and other things.
+> 
+
+```cpp
+#include "kernel/types.h"
+#include "user/user.h"
+
+int main(int argc, char *argv[])
+{
+  int n;
+  if(argc!=2){
+    fprintf(2, "Usage: sleep n...\n");
+    exit(1);
+  }
+  n=atoi(argv[1]);
+  sleep(n);
+  exit(0);
+}
+```
+
+
+(2) modify the makefile, like other user interface
+
+```bash
+UPROGS=\
+	$U/_cat\
+	$U/_echo\
+	$U/_forktest\
+	$U/_grep\
+	$U/_init\
+	$U/_kill\
+	$U/_ln\
+	$U/_ls\
+	$U/_mkdir\
+	$U/_rm\
+	$U/_sh\
+	$U/_stressfs\
+	$U/_usertests\
+	$U/_grind\
+	$U/_wc\
+	$U/_zombie\
+	$U/_sleep\
+```
+
 
 
 
