@@ -86,5 +86,12 @@ UPROGS=\
 ```
 
 
+### find(moderate)
+要求用递归方式找到指定的文件夹下符合某个名字的文件，参考user/ls.c的实现方法.
+```cpp
+/user/find.c
+void find(char *path, char *target) 
+
+
 
 
