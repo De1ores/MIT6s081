@@ -85,12 +85,95 @@ UPROGS=\
 	$U/_sleep\
 ```
 
+### pingpong
+use pipe to create two file descriptions(use a array to store).
+p[0] for reading,p[1] for writing.
+fork create a child process.p[0]和p[1]的引用计数为2.
+子进程先写后读，父进程先读后写，子进程读不到数据会在管道阻塞直到父进程向管道写入数据.
+父进程类似。
+所以实现的是半双工的管道通信，数据只能在一个方向流动。
+如果想要实现全双工的通信，需要用两个管道。
+```cpp
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "user/user.h"
+
+int main(int argc, char *argv[]){
+    int p[2];
+    char buf[2];
+    char *parmsg = "a";
+    char *chimsg = "b";
+    pipe(p);
+
+    if (fork() == 0){
+       if (read(p[0], buf, 1) != 1){
+            fprintf(2, "Can't read from parent!\n");
+            exit(1);
+        }
+        printf("child receive: %c\n", buf[0]);
+        close(p[0]);
+        printf("%d: received ping\n", getpid());
+        if (write(p[1], chimsg, 1) != 1){
+            fprintf(2, "Can't write to parent!");
+        }
+        close(p[1]);
+        exit(0);
+    }else{
+        if (write(p[1], parmsg, 1) != 1){
+            fprintf(2, "Can't write to child!\n");
+            exit(1);
+        }
+        close(p[1]);
+        wait(0);
+        if (read(p[0], buf, 1) != 1){
+            fprintf(2, "Can't read from child!");
+            exit(1);
+        }
+        printf("parent receive: %c\n", buf[0]);
+        close(p[0]);
+        printf("%d: received pong\n", getpid());
+        exit(0);
+    }
+}
+```
+
 
 ### find(moderate)
 要求用递归方式找到指定的文件夹下符合某个名字的文件，参考user/ls.c的实现方法.
 ```cpp
 /user/find.c
 void find(char *path, char *target) 
+```
+
+思路:递归遍历目录的所有文件，如果相等就输出文件路径，如果不相等就跳过。<br/>
+(1)de中有两个结构体成员,inum是inode号,如果是0，就是非法的；name是子目录的名字.<br/>
+            如.目录下子目录的名字:
+            .<br/>
+            ..<br/>
+            README<br/>
+            xargstest.sh<br/>
+            cat<br/>
+            echo<br/>
+            (.......)<br/>
+            .表示当前目录，..表示上一级目录，遍历的时候需要跳过。<br/>
+
+(2) int stat(const char*, struct stat*); 表示获取路径的相关信息.<br/>
+```cpp
+             stat结构体
+             struct stat {
+                 int dev;     // File system's disk device
+                 uint ino;    // Inode number
+                 short type;  // Type of file
+                 short nlink; // Number of links to file
+                 uint64 size; // Size of file in bytes
+             }
+             inode号，链接数，文件类型
+```
+
+
+使用buf接受目录,然后使用read读取子目录的de结构体，拼接到buf后面，然后使用stat获取相关信息，如果是目录，就递归访问;<br/>
+如果是文件，就把子目录的名字 和 目标文件进行对比,如果相等就输出。
+
 
 
 

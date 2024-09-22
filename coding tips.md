@@ -6,3 +6,5 @@ char s2[100];
 memcopy(s1,s2,sizeof(lenS2));
 printf("%s",s1);
 ```
+memcopy自动在后面加'\0'
+
