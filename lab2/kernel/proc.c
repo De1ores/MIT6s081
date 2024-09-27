@@ -13,6 +13,7 @@ struct proc proc[NPROC];
 struct proc *initproc;
 
 int nextpid = 1;
+// int unused_proc_count=0;
 struct spinlock pid_lock;
 
 extern void forkret(void);
@@ -119,7 +120,7 @@ allocproc(void)
 found:
   p->pid = allocpid();
   p->state = USED;
-
+  // unused_proc_count--;
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
     freeproc(p);
@@ -164,7 +165,11 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
-}
+  //这里忘记加了p->mask
+
+  p->trace_mask=0;
+  p->syscall_name="\0";
+} 
 
 // Create a user page table for a given process,
 // with no user memory, but with trampoline pages.
@@ -275,12 +280,10 @@ fork(void)
   int i, pid;
   struct proc *np;
   struct proc *p = myproc();
-
   // Allocate process.
   if((np = allocproc()) == 0){
     return -1;
   }
-
   // Copy user memory from parent to child.
   if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
     freeproc(np);
@@ -288,33 +291,26 @@ fork(void)
     return -1;
   }
   np->sz = p->sz;
-
+  np->trace_mask = p->trace_mask;
+  np->syscall_name = p->syscall_name;
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
-
   // Cause fork to return 0 in the child.
   np->trapframe->a0 = 0;
-
   // increment reference counts on open file descriptors.
   for(i = 0; i < NOFILE; i++)
     if(p->ofile[i])
       np->ofile[i] = filedup(p->ofile[i]);
   np->cwd = idup(p->cwd);
-
   safestrcpy(np->name, p->name, sizeof(p->name));
-
   pid = np->pid;
-
   release(&np->lock);
-
   acquire(&wait_lock);
   np->parent = p;
   release(&wait_lock);
-
   acquire(&np->lock);
   np->state = RUNNABLE;
   release(&np->lock);
-
   return pid;
 }
 
@@ -654,3 +650,25 @@ procdump(void)
     printf("\n");
   }
 }
+
+int trace(int mask){
+  struct proc *p = myproc();
+  p->trace_mask=mask;
+  return 0;
+}
+
+int  collect_process_count(void){
+  int count=0;
+  for(int i=0;i<NPROC;i++){
+    acquire(&proc[i].lock);
+    if(proc[i].state!=UNUSED){
+      count++;
+    }
+    release(&proc[i].lock);
+  }
+  return count;
+}
+
+/*
+这里的obseration是有一个proc数组表示进程，直接线性扫描这个数组即可。
+*/

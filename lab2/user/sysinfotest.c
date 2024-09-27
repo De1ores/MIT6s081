@@ -3,25 +3,21 @@
 #include "kernel/sysinfo.h"
 #include "user/user.h"
 
-
-void
-sinfo(struct sysinfo *info) {
+extern int sysinfo(struct sys_info_t *);
+void sinfo(struct sys_info_t *info) {
   if (sysinfo(info) < 0) {
     printf("FAIL: sysinfo failed");
     exit(1);
   }
 }
 
-//
 // use sbrk() to count how many free physical memory pages there are.
-//
-int
-countfree()
+
+int countfree()
 {
   uint64 sz0 = (uint64)sbrk(0);
-  struct sysinfo info;
+  struct sys_info_t info;
   int n = 0;
-
   while(1){
     if((uint64)sbrk(PGSIZE) == 0xffffffffffffffff){
       break;
@@ -38,13 +34,10 @@ countfree()
   return n;
 }
 
-void
-testmem() {
-  struct sysinfo info;
+void testmem() {
+  struct sys_info_t info;
   uint64 n = countfree();
-  
   sinfo(&info);
-
   if (info.freemem!= n) {
     printf("FAIL: free mem %d (bytes) instead of %d\n", info.freemem, n);
     exit(1);
@@ -77,21 +70,20 @@ testmem() {
 
 void
 testcall() {
-  struct sysinfo info;
-  
+  struct sys_info_t info;
   if (sysinfo(&info) < 0) {
     printf("FAIL: sysinfo failed\n");
     exit(1);
   }
 
-  if (sysinfo((struct sysinfo *) 0xeaeb0b5b00002f5e) !=  0xffffffffffffffff) {
+  if (sysinfo((struct sys_info_t *) 0xeaeb0b5b00002f5e) !=  0xffffffffffffffff) {
     printf("FAIL: sysinfo succeeded with bad argument\n");
     exit(1);
   }
 }
 
 void testproc() {
-  struct sysinfo info;
+  struct sys_info_t info;
   uint64 nproc;
   int status;
   int pid;
@@ -120,8 +112,7 @@ void testproc() {
   }
 }
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
   printf("sysinfotest: start\n");
   testcall();

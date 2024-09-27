@@ -47,7 +47,6 @@ void
 kfree(void *pa)
 {
   struct run *r;
-
   if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
     panic("kfree");
 
@@ -59,6 +58,7 @@ kfree(void *pa)
   acquire(&kmem.lock);
   r->next = kmem.freelist;
   kmem.freelist = r;
+  // free_memory++;
   release(&kmem.lock);
 }
 
@@ -72,11 +72,28 @@ kalloc(void)
 
   acquire(&kmem.lock);
   r = kmem.freelist;
-  if(r)
+  if(r){
     kmem.freelist = r->next;
+
+  }
   release(&kmem.lock);
 
-  if(r)
+  if(r){
     memset((char*)r, 5, PGSIZE); // fill with junk
+    // --free_memory;
+  }
   return (void*)r;
+}
+
+int  collect_free_count(void){
+  /*参考别人*/
+  uint64 ret = 0;
+  acquire(&kmem.lock); // 先加锁
+  struct run *free_pagelist = kmem.freelist;
+  while(free_pagelist){ // 遍历这个链表
+    free_pagelist = free_pagelist->next;
+    ret++;
+  }
+  release(&kmem.lock);
+  return ret * PGSIZE; // 返回时，需要乘以一个页的大小
 }
